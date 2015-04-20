@@ -108,6 +108,7 @@ class Ball {
       float distance = sqrt(dx*dx + dy*dy);
       float minDist = others[i].diameter/2 + diameter/2;
       if (distance < minDist) { 
+        // THIS IS A COLLISION EVENT - SEND OSC SOUND NOW?
         float angle = atan2(dy, dx);
         float targetX = x + cos(angle) * minDist;
         float targetY = y + sin(angle) * minDist;
@@ -129,11 +130,15 @@ class Ball {
       y += vy;
 
       //interaction of the ball with the frame. 
-      // 
+      // the frame is divided into three sections: 
+      // top (above the "wall" defining the border of the container)
+      // bottom left: to the left of the wall
+      // bottom right: to the right of the wall
 
       //top
       if ( y < wall_y){
 
+        //COLLISION EVENTS WITH FRAME: SEND OSC MESSAGE FOR SOUND? 
         //bounce off right border
         if (x + diameter/2 > width) {
           x = width - diameter/2;
