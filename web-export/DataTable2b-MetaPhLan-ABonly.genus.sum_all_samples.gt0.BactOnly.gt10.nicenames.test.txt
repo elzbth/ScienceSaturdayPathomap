@@ -1,0 +1,12 @@
+Corynebacterium 10.1195
+Dermatophilaceae_unclassified 16.3194
+Micrococcus 21
+Propionibacteriaceae_unclassified 13.4552
+Propionibacterium 11.5652
+Pedobacter 21.9911
+Sphingobacterium 27.3398
+Bacillus 51.7832
+Lysinibacillus 229.639
+Exiguobacterium 29
+Staphylococcus 33
+Aerococcus 28.0088
