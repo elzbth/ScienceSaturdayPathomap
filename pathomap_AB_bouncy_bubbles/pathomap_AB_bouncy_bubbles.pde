@@ -37,13 +37,10 @@ void setup() {
     //******initaite kinect
   // start a new kinect object
   kinect = new SimpleOpenNI(this);
- 
   // enable depth sensor
   kinect.enableDepth();
- 
   // enable skeleton generation for all joints
   kinect.enableUser();
- 
   // draw thickness of drawer
   strokeWeight(3);
   // smooth out drawing
@@ -137,7 +134,7 @@ head if confidence of tracking is above threshold
         // fill the ellipse with the same color
         fill(userColor[(i)]);
         // draw the rest of the body
-        drawSkeleton(userID[i]);
+        circleHead(userID[i]);
  
       } //if(confidence > confidenceLevel)
     } //if(kinect.isTrackingSkeleton(userID[i]))
@@ -147,8 +144,8 @@ head if confidence of tracking is above threshold
  
   
 //  background(0);
-  image(background_img, 0, 0);
-
+  //image(background_img, 0, 0);
+    image(kinect.depthImage(),0,0);
   // println(wall_x, wall_y);
 
   fill(255, 0, 0);
@@ -164,7 +161,7 @@ head if confidence of tracking is above threshold
 }
 
  //Draw Circle on Head
- void drawSkeleton(int userId){
+ void circleHead(int userId){
    // get 3D position of head
   kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,lefthand);
   // convert real world point to projective space
@@ -172,6 +169,7 @@ head if confidence of tracking is above threshold
   // create a distance scalar related to the depth in z dimension
   distanceScalar = (525/lefthand.z);
   // draw the circle at the position of the head with the head size scaled by the distance scalar
+  fill (0,255,0);
   ellipse(lefthand.x,lefthand.y, distanceScalar*headSize,distanceScalar*headSize);
   //
   }
@@ -182,7 +180,8 @@ userID and start pose detection.  Input is userID
 void onNewUser(SimpleOpenNI curContext, int userId){
   println("New User Detected - userId: " + userId);
   // start tracking of user id
-  curContext.startTrackingSkeleton(userId);
+  kinect.startTrackingSkeleton(userId);
+  //curContext.startTrackingSkeleton(userId);
 } //void onNewUser(SimpleOpenNI curContext, int userId)
  
 /*---------------------------------------------------------------
