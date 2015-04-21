@@ -1,3 +1,4 @@
+import SimpleOpenNI.*;
 int numBalls;
 float spring = 0.02;
 float gravity = 0.03;
@@ -8,7 +9,49 @@ PImage background_img;
 float wall_x;
 float wall_y;
 
+// Begin Kinect Variables - create kinect object
+SimpleOpenNI  kinect;
+// image storage from kinect
+PImage kinectDepth;
+// int of each user being  tracked
+int[] userID;
+// user colors
+color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
+                                 color(255,255,0), color(255,0,255), color(0,255,255)};
+ 
+// postion of head to draw circle
+PVector lefthand = new PVector();
+// turn headPosition into scalar form
+float distanceScalar;
+// diameter of head drawn in pixels
+float headSize = 200;
+ 
+// threshold of level of confidence
+float confidenceLevel = 0.5;
+// the current confidence level that the kinect is tracking
+float confidence;
+// vector of tracked head for confidence checking
+PVector confidenceVector = new PVector();
+
 void setup() {
+    //******initaite kinect
+  // start a new kinect object
+  kinect = new SimpleOpenNI(this);
+ 
+  // enable depth sensor
+  kinect.enableDepth();
+ 
+  // enable skeleton generation for all joints
+  kinect.enableUser();
+ 
+  // draw thickness of drawer
+  strokeWeight(3);
+  // smooth out drawing
+  smooth();
+
+
+  //end kinect code
+  
 //  size(768, 600);
   size(635, 476);
   // size(displayWidth, displayHeight);
@@ -16,6 +59,10 @@ void setup() {
   String[] lines = loadStrings("DataTable2b-MetaPhLan-ABonly.genus.sum_all_samples.gt0.BactOnly.gt10.nicenames.txt");
   background_img = loadImage("AB_station_collage.jpg");
   // background_img.resize(displayWidth, displayHeight);
+  
+
+  
+  
   //will have one extra ball for the mouse
   numBalls = lines.length + 1;
 //  print(numBalls);
@@ -54,7 +101,51 @@ void setup() {
   println(wall_x, wall_y);
 }
 
-void draw() {
+
+  
+void draw(){
+  
+  /*---------------------------------------------------------------
+Updates Kinect. Gets users tracking and draws skeleton and
+head if confidence of tracking is above threshold
+----------------------------------------------------------------*/
+  // update the camera
+  kinect.update();
+  // get Kinect data
+  kinectDepth = kinect.depthImage();
+  // draw depth image at coordinates (0,0)
+  //image(kinectDepth,0,0); 
+ 
+   // get all user IDs of tracked users
+  userID = kinect.getUsers();
+ 
+  // loop through each user to see if tracking
+  for(int i=0;i<userID.length;i++)
+  {
+    // if Kinect is tracking certain user then get joint vectors
+    if(kinect.isTrackingSkeleton(userID[i]))
+    {
+      // get confidence level that Kinect is tracking head
+      confidence = kinect.getJointPositionSkeleton(userID[i],
+                          SimpleOpenNI.SKEL_HEAD,confidenceVector);
+ 
+      // if confidence of tracking is beyond threshold, then track user
+      if(confidence > confidenceLevel)
+      {
+        // change draw color based on hand id#
+        stroke(userColor[(i)]);
+        // fill the ellipse with the same color
+        fill(userColor[(i)]);
+        // draw the rest of the body
+        drawSkeleton(userID[i]);
+ 
+      } //if(confidence > confidenceLevel)
+    } //if(kinect.isTrackingSkeleton(userID[i]))
+  } //for(int i=0;i<userID.length;i++)
+
+ 
+ 
+  
 //  background(0);
   image(background_img, 0, 0);
 
@@ -71,6 +162,45 @@ void draw() {
 //  saveFrame("frames/frame#####.tga");
   
 }
+
+ //Draw Circle on Head
+ void drawSkeleton(int userId){
+   // get 3D position of head
+  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,lefthand);
+  // convert real world point to projective space
+  kinect.convertRealWorldToProjective(lefthand,lefthand);
+  // create a distance scalar related to the depth in z dimension
+  distanceScalar = (525/lefthand.z);
+  // draw the circle at the position of the head with the head size scaled by the distance scalar
+  ellipse(lefthand.x,lefthand.y, distanceScalar*headSize,distanceScalar*headSize);
+  //
+  }
+  /*---------------------------------------------------------------
+When a new user is found, print new user detected along with
+userID and start pose detection.  Input is userID
+----------------------------------------------------------------*/
+void onNewUser(SimpleOpenNI curContext, int userId){
+  println("New User Detected - userId: " + userId);
+  // start tracking of user id
+  curContext.startTrackingSkeleton(userId);
+} //void onNewUser(SimpleOpenNI curContext, int userId)
+ 
+/*---------------------------------------------------------------
+Print when user is lost. Input is int userId of user lost
+----------------------------------------------------------------*/
+void onLostUser(SimpleOpenNI curContext, int userId){
+  // print user lost and user id
+  println("User Lost - userId: " + userId);
+} //void onLostUser(SimpleOpenNI curContext, int userId)
+ 
+/*---------------------------------------------------------------
+Called when a user is tracked.
+----------------------------------------------------------------*/
+void onVisibleUser(SimpleOpenNI curContext, int userId){
+} //void onVisibleUser(SimpleOpenNI curContext, int userId)
+
+
+
 
 class Ball {
   
@@ -122,6 +252,9 @@ class Ball {
     }   
   }
   
+
+  
+ 
   void move() {
     
     if(isMouse == false){
