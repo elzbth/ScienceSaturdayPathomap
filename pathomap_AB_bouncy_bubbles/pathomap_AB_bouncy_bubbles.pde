@@ -1,5 +1,6 @@
 import SimpleOpenNI.*;
 int numBalls;
+int maxusers = 1;
 float spring = 0.02;
 float gravity = 0.03;
 float friction = -0.2;
@@ -21,6 +22,7 @@ color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
  
 // postion of head to draw circle
 PVector lefthand = new PVector();
+PVector righthand = new PVector();
 // turn headPosition into scalar form
 float distanceScalar;
 // diameter of head drawn in pixels
@@ -42,6 +44,7 @@ void setup() {
   // enable skeleton generation for all joints
   kinect.enableUser();
   // draw thickness of drawer
+  kinect.setMirror(true);
   strokeWeight(3);
   // smooth out drawing
   smooth();
@@ -49,7 +52,7 @@ void setup() {
 
   //end kinect code
   
-//  size(768, 600);
+  //  size(768, 600);
   size(635, 476);
   // size(displayWidth, displayHeight);
   //read lines in file into array of strings
@@ -61,7 +64,7 @@ void setup() {
   
   
   //will have one extra ball for the mouse
-  numBalls = lines.length + 1;
+  numBalls = lines.length + 1 + (maxusers*2);
 //  print(numBalls);
   balls = new Ball[numBalls];
   
@@ -130,7 +133,7 @@ head if confidence of tracking is above threshold
       if(confidence > confidenceLevel)
       {
         // change draw color based on hand id#
-        stroke(userColor[(i)]);
+        //stroke(userColor[(i)]);
         // fill the ellipse with the same color
         fill(userColor[(i)]);
         // draw the rest of the body
@@ -171,7 +174,17 @@ head if confidence of tracking is above threshold
   // draw the circle at the position of the head with the head size scaled by the distance scalar
   fill (0,255,0);
   ellipse(lefthand.x,lefthand.y, distanceScalar*headSize,distanceScalar*headSize);
-  //
+  //right hand
+  
+  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND, righthand);
+  // convert real world point to projective space
+  kinect.convertRealWorldToProjective(righthand,righthand);
+  // create a distance scalar related to the depth in z dimension
+  distanceScalar = (525/righthand.z);
+  // draw the circle at the position of the head with the head size scaled by the distance scalar
+  fill (0,0,255);
+  ellipse(righthand.x,righthand.y, 50,50);
+  
   }
   /*---------------------------------------------------------------
 When a new user is found, print new user detected along with
@@ -211,6 +224,7 @@ class Ball {
   Ball[] others;
   String name;
   Boolean isMouse;
+  Boolean isUser;
   color c;
  
   Ball(float xin, float yin, float din, int idin, Ball[] oin, String namein, color cin) {
