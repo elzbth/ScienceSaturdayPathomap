@@ -23,6 +23,8 @@ color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
 // postion of head to draw circle
 PVector lefthand = new PVector();
 PVector righthand = new PVector();
+PVector user1Left= new PVector();
+PVector user1Right= new PVector();
 // turn headPosition into scalar form
 float distanceScalar;
 // diameter of head drawn in pixels
@@ -73,10 +75,10 @@ void setup() {
   //make the first ball the mouse ball
   balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
   balls[0].setAsMouse();
-   balls{1] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
-  balls[1].setAsLeftHand();
-   balls[2] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
-  balls[2].setAsRightHand();
+  //balls{1] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
+  //balls[1].setAsLeftHand();
+  //balls[2] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
+  //balls[2].setAsRightHand();
   
   for (int i = 0; i < numBalls - 3; i++) {
     String[] line = split(lines[i], " ");
@@ -280,8 +282,14 @@ class Ball {
   
  
   void move() {
+     if (isMouse==true){
+      x = mouseX;
+      y = mouseY;
+    }
     
-    if(isMouse == false){
+    //??????????????????????????????????????????add testing for left hand and right hand here. test if mouse ture, if do mouse right hand, do mouse if left mouse, else do phisics
+    
+    else if(isMouse == false){
       vy += gravity;
       x += vx;
       y += vy;
@@ -365,12 +373,9 @@ class Ball {
       }
     }
 
-    elseif (isMouse==true){
-      x = mouseX;
-      y = mouseY;
-    }
+  
     
-    //??????????????????????????????????????????add testing for left hand and right hand here. test if mouse ture, if do mouse right hand, do mouse if left mouse, else do phisics
+    
   }
   
   void display() {
