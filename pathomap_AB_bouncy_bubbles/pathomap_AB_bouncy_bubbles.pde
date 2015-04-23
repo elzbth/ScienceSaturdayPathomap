@@ -1,6 +1,6 @@
 import SimpleOpenNI.*;
 int numBalls;
-int maxusers = 1;
+int maxUsers = 1;
 float spring = 0.02;
 float gravity = 0.03;
 float friction = -0.2;
@@ -19,14 +19,12 @@ int[] userID;
 // user colors
 color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
                                  color(255,255,0), color(255,0,255), color(0,255,255)};
- 
 // postion of head to draw circle
 PVector lefthand = new PVector();
 PVector righthand = new PVector();
-PVector user1Left= new PVector();
-PVector user1Right= new PVector();
 // turn headPosition into scalar form
-float distanceScalar;
+float distanceScalarL;
+float distanceScalarR;
 // diameter of head drawn in pixels
 float headSize = 200;
  
@@ -43,10 +41,11 @@ void setup() {
   kinect = new SimpleOpenNI(this);
   // enable depth sensor
   kinect.enableDepth();
+  //Mirror to match real world
+  kinect.setMirror(true);
   // enable skeleton generation for all joints
   kinect.enableUser();
   // draw thickness of drawer
-  kinect.setMirror(true);
   strokeWeight(3);
   // smooth out drawing
   smooth();
@@ -54,7 +53,7 @@ void setup() {
 
   //end kinect code
   
-  //  size(768, 600);
+//  size(768, 600);
   size(635, 476);
   // size(displayWidth, displayHeight);
   //read lines in file into array of strings
@@ -66,7 +65,7 @@ void setup() {
   
   
   //will have one extra ball for the mouse
-  numBalls = lines.length + 1 + (maxusers*2);
+  numBalls = lines.length + 1;
 //  print(numBalls);
   balls = new Ball[numBalls];
   
@@ -75,12 +74,8 @@ void setup() {
   //make the first ball the mouse ball
   balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
   balls[0].setAsMouse();
-  //balls{1] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
-  //balls[1].setAsLeftHand();
-  //balls[2] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
-  //balls[2].setAsRightHand();
   
-  for (int i = 0; i < numBalls - 3; i++) {
+  for (int i = 0; i < numBalls - 1; i++) {
     String[] line = split(lines[i], " ");
     
     float radius = float(line[1]);
@@ -94,12 +89,12 @@ void setup() {
     
     color c = color(r, g, b);
     
-    balls[i+1] = new Ball(random(width), height - 10, radius, i+3, balls, name, c);
+    balls[i+1] = new Ball(random(width), height - 10, radius, i+1, balls, name, c);
 //    println(i+1, name);
   }
   noStroke();
 //  fill(255, 204);
-  image(background_img, 0, 0);
+  //image(background_img, 0, 0);
 
 
   wall_x = (float)width * 0.75;
@@ -120,7 +115,7 @@ head if confidence of tracking is above threshold
   // get Kinect data
   kinectDepth = kinect.depthImage();
   // draw depth image at coordinates (0,0)
-  //image(kinectDepth,0,0); 
+  image(kinectDepth,0,0); 
  
    // get all user IDs of tracked users
   userID = kinect.getUsers();
@@ -153,8 +148,8 @@ head if confidence of tracking is above threshold
  
   
 //  background(0);
-  //image(background_img, 0, 0);
-    image(kinect.depthImage(),0,0);
+  image(background_img, 0, 0);
+    //image(kinect.depthImage(),0,0);
   // println(wall_x, wall_y);
 
   fill(255, 0, 0);
@@ -173,24 +168,24 @@ head if confidence of tracking is above threshold
  void circleHead(int userId){
    // get 3D position of head
   kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,lefthand);
+  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND,righthand);
   // convert real world point to projective space
   kinect.convertRealWorldToProjective(lefthand,lefthand);
-  // create a distance scalar related to the depth in z dimension
-  distanceScalar = (525/lefthand.z);
-  // draw the circle at the position of the head with the head size scaled by the distance scalar
-  fill (0,255,0);
-  ellipse(lefthand.x,lefthand.y, distanceScalar*headSize,distanceScalar*headSize);
-  //right hand
-  
-  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND, righthand);
-  // convert real world point to projective space
   kinect.convertRealWorldToProjective(righthand,righthand);
   // create a distance scalar related to the depth in z dimension
-  distanceScalar = (525/righthand.z);
+  distanceScalarL = (525/lefthand.z);
+  distanceScalarR = (525/righthand.z);
   // draw the circle at the position of the head with the head size scaled by the distance scalar
-  fill (0,0,255);
-  ellipse(righthand.x,righthand.y, 50,50);
+  fill (0,255,0);
+  ellipse(lefthand.x,lefthand.y,50,50);
   
+  fill (0,255,0);
+  ellipse(righthand.x,righthand.y,50,50);
+  println("lefthand:",lefthand.x, "," , lefthand.y);
+  println("righthand:", righthand.x, "," , righthand.y);
+  
+  
+  //
   }
   /*---------------------------------------------------------------
 When a new user is found, print new user detected along with
@@ -248,12 +243,6 @@ class Ball {
   void setAsMouse(){
    isMouse = true; 
   }
-  void setAsLeftHand(){
-   isLeftHand = true; 
-  }
-  void setAsRightHand(){
-   isRightHand = true; 
-  }
   
   void collide() {
 //    println("colliding", id);
@@ -282,14 +271,8 @@ class Ball {
   
  
   void move() {
-     if (isMouse==true){
-      x = mouseX;
-      y = mouseY;
-    }
     
-    //??????????????????????????????????????????add testing for left hand and right hand here. test if mouse ture, if do mouse right hand, do mouse if left mouse, else do phisics
-    
-    else if(isMouse == false){
+    if(isMouse == false){
       vy += gravity;
       x += vx;
       y += vy;
@@ -373,9 +356,10 @@ class Ball {
       }
     }
 
-  
-    
-    
+    else{
+      x = mouseX;
+      y = mouseY;
+    }
   }
   
   void display() {
