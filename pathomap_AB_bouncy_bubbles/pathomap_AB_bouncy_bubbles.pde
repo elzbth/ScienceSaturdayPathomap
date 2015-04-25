@@ -19,9 +19,9 @@ int[] userID;
 // user colors
 color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
                                  color(255,255,0), color(255,0,255), color(0,255,255)};
-// postion of head to draw circle
-PVector lefthand = new PVector();
-PVector righthand = new PVector();
+
+PVector leftHand = new PVector();
+PVector rightHand = new PVector();
 // turn headPosition into scalar form
 float distanceScalarL;
 float distanceScalarR;
@@ -75,10 +75,10 @@ void setup() {
   balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
   balls[0].setAsMouse();
    //********* add balls for Kinect
-  balls[1] = new Ball(lefthand.x, lefthand.y, 100, 0, balls, "left hand", mouseColor);
-  balls[1].setAsLeftHand();
-    balls[1] = new Ball(righthand.x, righthand.y, 100, 0, balls, "right hand", mouseColor);
-  balls[1].setAsRightHand();
+  balls[1] = new Ball(leftHand.x, leftHand.y, 100, 0, balls, "lefthand", mouseColor);
+  balls[1].setAsleftHand();
+   balls[2] = new Ball(rightHand.x, rightHand.y, 100, 0, balls, "righthand", mouseColor);
+  balls[2].setAsrightHand();
   
   
   for (int i = 0; i < numBalls - 3; i++) {
@@ -173,22 +173,22 @@ head if confidence of tracking is above threshold
  //Draw Circle on Head
  void circleHead(int userId){
    // get 3D position of head
-  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,lefthand);
-  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND,righthand);
+  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,leftHand);
+  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
   // convert real world point to projective space
-  kinect.convertRealWorldToProjective(lefthand,lefthand);
-  kinect.convertRealWorldToProjective(righthand,righthand);
+  kinect.convertRealWorldToProjective(leftHand,leftHand);
+  kinect.convertRealWorldToProjective(rightHand,rightHand);
   // create a distance scalar related to the depth in z dimension
-  distanceScalarL = (525/lefthand.z);
-  distanceScalarR = (525/righthand.z);
+  distanceScalarL = (525/leftHand.z);
+  distanceScalarR = (525/rightHand.z);
   // draw the circle at the position of the head with the head size scaled by the distance scalar
   fill (0,255,0);
-  ellipse(lefthand.x,lefthand.y,50,50);
+  ellipse(leftHand.x,leftHand.y,50,50);
   
   fill (0,255,0);
-  ellipse(righthand.x,righthand.y,50,50);
-  println("lefthand:",lefthand.x, "," , lefthand.y);
-  println("righthand:", righthand.x, "," , righthand.y);
+  ellipse(rightHand.x,rightHand.y,50,50);
+  println("leftHand:",leftHand.x, "," , leftHand.y);
+  println("rightHand:", rightHand.x, "," , rightHand.y);
   
   
   //
@@ -231,8 +231,8 @@ class Ball {
   Ball[] others;
   String name;
   Boolean isMouse;
-  Boolean isLeftHand;
-  Boolean isRightHand;
+  Boolean isleftHand;
+  Boolean isrightHand;
   color c;
  
   Ball(float xin, float yin, float din, int idin, Ball[] oin, String namein, color cin) {
@@ -249,11 +249,11 @@ class Ball {
   void setAsMouse(){
    isMouse = true; 
   }
-    void setAsRightHand(){
-   isRightHand = true; 
+    void setAsrightHand(){
+   isrightHand = true; 
   }
-    void setAsLeftHand(){
-   isLeftHand = true; 
+    void setAsleftHand(){
+   isleftHand = true; 
   }
   
   
@@ -284,22 +284,23 @@ class Ball {
   
  
   void move() {
-     if(isMouse== true){
+     if(isMouse==true){
       x = mouseX;
       y = mouseY;
     }
-    
-     else if(isLeftHand == true){
-      x= lefthand.x;
-      y = lefthand.y;
+    /* not wroking right now
+     else if(isleftHand==true){
+      x= (leftHand.x);
+      y = (leftHand.y);
      }
      
-     else if(isRightHand == true){
-      x= righthand.x;
-      y = righthand.y;
+     else if(isrightHand==true){
+      x= rightHand.x;
+      y = rightHand.y;
      }
+     */
     
-    if(isMouse == false){
+    else if(isMouse==false){
       vy += gravity;
       x += vx;
       y += vy;
