@@ -74,8 +74,14 @@ void setup() {
   //make the first ball the mouse ball
   balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
   balls[0].setAsMouse();
+   //********* add balls for Kinect
+  balls[1] = new Ball(lefthand.x, lefthand.y, 100, 0, balls, "left hand", mouseColor);
+  balls[1].setAsLeftHand();
+    balls[1] = new Ball(righthand.x, righthand.y, 100, 0, balls, "right hand", mouseColor);
+  balls[1].setAsRightHand();
   
-  for (int i = 0; i < numBalls - 1; i++) {
+  
+  for (int i = 0; i < numBalls - 3; i++) {
     String[] line = split(lines[i], " ");
     
     float radius = float(line[1]);
@@ -89,7 +95,7 @@ void setup() {
     
     color c = color(r, g, b);
     
-    balls[i+1] = new Ball(random(width), height - 10, radius, i+1, balls, name, c);
+    balls[i+3] = new Ball(random(width), height - 10, radius, i+1, balls, name, c);
 //    println(i+1, name);
   }
   noStroke();
@@ -243,6 +249,13 @@ class Ball {
   void setAsMouse(){
    isMouse = true; 
   }
+    void setAsRightHand(){
+   isRightHand = true; 
+  }
+    void setAsLeftHand(){
+   isLeftHand = true; 
+  }
+  
   
   void collide() {
 //    println("colliding", id);
@@ -271,6 +284,20 @@ class Ball {
   
  
   void move() {
+     if(isMouse== true){
+      x = mouseX;
+      y = mouseY;
+    }
+    
+     else if(isLeftHand == true){
+      x= lefthand.x;
+      y = lefthand.y;
+     }
+     
+     else if(isRightHand == true){
+      x= righthand.x;
+      y = righthand.y;
+     }
     
     if(isMouse == false){
       vy += gravity;
@@ -356,10 +383,7 @@ class Ball {
       }
     }
 
-    else{
-      x = mouseX;
-      y = mouseY;
-    }
+ 
   }
   
   void display() {
