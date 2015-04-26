@@ -236,6 +236,7 @@ class Ball {
   Boolean isleftHand;
   Boolean isrightHand;
   color c;
+  Boolean ignore;
  
   Ball(float xin, float yin, float din, int idin, Ball[] oin, String namein, color cin) {
     x = xin;
@@ -247,8 +248,13 @@ class Ball {
     isMouse = false;
     isleftHand = false;
     isrightHand = false;
+    ignore = false;
     c = cin;
+    
   } 
+  void ignore(){
+  ignore = true;  
+  }
   
   void setAsMouse(){
    isMouse = true; 
@@ -375,15 +381,15 @@ class Ball {
           //start just bounce dont disappear
           y = height - diameter/2;
           vy *= friction; 
+         
           //end just bounce dont disappear
           
           //start disappear
-//          if (!isMouse && !isleftHand && !isrightHand){
-//            
-//            balls[id] = null;
-//            
-//          }
-          //
+         if (!isMouse && !isleftHand && !isrightHand){
+             ignore = true;
+            
+          }
+          
         }
 
         //bounde off wall to the left
@@ -402,7 +408,7 @@ class Ball {
   }
   
   void display() {
-    if(isMouse == false){
+    if( !(isMouse || ignore)){
       
       float alpha = 0;
       if( y > height / 4 && y < height/2){
