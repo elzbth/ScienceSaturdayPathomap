@@ -20,8 +20,8 @@ int[] userID;
 color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
                                  color(255,255,0), color(255,0,255), color(0,255,255)};
 
-PVector leftHand = new PVector();
-PVector rightHand = new PVector();
+PVector leftHand = new PVector(0,0,0);
+PVector rightHand = new PVector(0,0,0);
 // turn headPosition into scalar form
 float distanceScalarL;
 float distanceScalarR;
@@ -64,8 +64,8 @@ void setup() {
 
   
   
-  //will have one extra ball for the mouse
-  numBalls = lines.length + 1;
+  //will have one extra ball for the mouse, and one for each hand
+  numBalls = lines.length + 3;
 //  print(numBalls);
   balls = new Ball[numBalls];
   
@@ -75,9 +75,9 @@ void setup() {
   balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
   balls[0].setAsMouse();
    //********* add balls for Kinect
-  balls[1] = new Ball(leftHand.x, leftHand.y, 100, 0, balls, "lefthand", mouseColor);
+  balls[1] = new Ball(leftHand.x, leftHand.y, 100, 1, balls, "lefthand", mouseColor);
   balls[1].setAsleftHand();
-   balls[2] = new Ball(rightHand.x, rightHand.y, 100, 0, balls, "righthand", mouseColor);
+   balls[2] = new Ball(rightHand.x, rightHand.y, 100, 2, balls, "righthand", mouseColor);
   balls[2].setAsrightHand();
   
   
@@ -121,7 +121,7 @@ head if confidence of tracking is above threshold
   // get Kinect data
   kinectDepth = kinect.depthImage();
   // draw depth image at coordinates (0,0)
-  image(kinectDepth,0,0); 
+  //image(kinectDepth,0,0); 
  
    // get all user IDs of tracked users
   userID = kinect.getUsers();
@@ -143,9 +143,24 @@ head if confidence of tracking is above threshold
         //stroke(userColor[(i)]);
         // fill the ellipse with the same color
         fill(userColor[(i)]);
-        // draw the rest of the body
-        circleHead(userID[i]);
- 
+        // detect hand coordinates
+        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_LEFT_HAND,leftHand);
+        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
+        // convert real world point to projective space
+        kinect.convertRealWorldToProjective(leftHand,leftHand);
+        kinect.convertRealWorldToProjective(rightHand,rightHand);
+        // create a distance scalar related to the depth in z dimension
+        distanceScalarL = (525/leftHand.z);
+        distanceScalarR = (525/rightHand.z);
+        // draw the circle at the position of the head with the head size scaled by the distance scalar
+        fill (0,255,0);
+        ellipse(leftHand.x,leftHand.y,50,50);
+        
+        fill (0,255,0);
+        ellipse(rightHand.x,rightHand.y,50,50);
+        println("leftHand:",leftHand.x, "," , leftHand.y);
+        println("rightHand:", rightHand.x, "," , rightHand.y);
+       
       } //if(confidence > confidenceLevel)
     } //if(kinect.isTrackingSkeleton(userID[i]))
   } //for(int i=0;i<userID.length;i++)
@@ -162,9 +177,11 @@ head if confidence of tracking is above threshold
   rect(wall_x, wall_y, 10, height - wall_y);
   // ellipse(wall_x, wall_y, 20, 20);
   for (Ball ball : balls) {
-    ball.collide();
-    ball.move();
-    ball.display();  
+    if (ball != null){
+      ball.collide();
+      ball.move();
+      ball.display();  
+    }
   }
 //  saveFrame("frames/frame#####.tga");
   
@@ -173,22 +190,7 @@ head if confidence of tracking is above threshold
  //Draw Circle on Head
  void circleHead(int userId){
    // get 3D position of head
-  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_LEFT_HAND,leftHand);
-  kinect.getJointPositionSkeleton(userId, SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
-  // convert real world point to projective space
-  kinect.convertRealWorldToProjective(leftHand,leftHand);
-  kinect.convertRealWorldToProjective(rightHand,rightHand);
-  // create a distance scalar related to the depth in z dimension
-  distanceScalarL = (525/leftHand.z);
-  distanceScalarR = (525/rightHand.z);
-  // draw the circle at the position of the head with the head size scaled by the distance scalar
-  fill (0,255,0);
-  ellipse(leftHand.x,leftHand.y,50,50);
   
-  fill (0,255,0);
-  ellipse(rightHand.x,rightHand.y,50,50);
-  println("leftHand:",leftHand.x, "," , leftHand.y);
-  println("rightHand:", rightHand.x, "," , rightHand.y);
   
   
   //
@@ -243,6 +245,8 @@ class Ball {
     others = oin;
     name = namein;
     isMouse = false;
+    isleftHand = false;
+    isrightHand = false;
     c = cin;
   } 
   
@@ -288,17 +292,16 @@ class Ball {
       x = mouseX;
       y = mouseY;
     }
-    /* not wroking right now
+   
      else if(isleftHand==true){
-      x= (leftHand.x);
+      x = (leftHand.x);
       y = (leftHand.y);
      }
      
      else if(isrightHand==true){
-      x= rightHand.x;
-      y = rightHand.y;
+      x= (rightHand.x);
+      y = (rightHand.y);
      }
-     */
     
     else if(isMouse==false){
       vy += gravity;
@@ -367,9 +370,20 @@ class Ball {
         }
 
         //bounce off floor with no spring
+        //DISSAPPEAR
         if (y + diameter/2 > height) {
+          //start just bounce dont disappear
           y = height - diameter/2;
           vy *= friction; 
+          //end just bounce dont disappear
+          
+          //start disappear
+//          if (!isMouse && !isleftHand && !isrightHand){
+//            
+//            balls[id] = null;
+//            
+//          }
+          //
         }
 
         //bounde off wall to the left
