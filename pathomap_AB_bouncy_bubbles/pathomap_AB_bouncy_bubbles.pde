@@ -14,6 +14,8 @@ float wall_y;
 SimpleOpenNI  kinect;
 // image storage from kinect
 PImage kinectDepth;
+
+PImage kinectDepth_resize;
 // int of each user being  tracked
 int[] userID;
 // user colors
@@ -35,8 +37,33 @@ float confidence;
 // vector of tracked head for confidence checking
 PVector confidenceVector = new PVector();
 
+//scaling factor for x pos of kinect
+float scaling_factor_x;
+
+//scaling factor for y pos of kinect
+float scaling_factor_y;
+
+
+float kinect_width = 640;
+float kinect_height = 480;
+
+Boolean showKinect = true;
+Boolean showImage = false;
+
+
 void setup() {
-    //******initaite kinect
+
+
+   size(768, 600);
+  // size(640, 480);
+
+  // size(displayWidth, displayHeight - 50);
+
+  scaling_factor_x = kinect_width / width;
+  scaling_factor_y = kinect_height / height;
+
+
+    ////////////////////initialize kinect ////////////////////////
   // start a new kinect object
   kinect = new SimpleOpenNI(this);
   // enable depth sensor
@@ -45,21 +72,20 @@ void setup() {
   kinect.setMirror(true);
   // enable skeleton generation for all joints
   kinect.enableUser();
-  // draw thickness of drawer
+  /////////////////////////////////////////////////////////////////
+  // // draw thickness of drawer
   strokeWeight(3);
   // smooth out drawing
   smooth();
 
-
-  //end kinect code
   
-//  size(768, 600);
-  size(635, 476);
-  // size(displayWidth, displayHeight);
+  /////////////////////////// read data ///////////////////////////////
   //read lines in file into array of strings
   String[] lines = loadStrings("DataTable2b-MetaPhLan-ABonly.genus.sum_all_samples.gt0.BactOnly.gt10.nicenames.txt");
   background_img = loadImage("AB_station_collage.jpg");
-  // background_img.resize(displayWidth, displayHeight);
+  background_img.resize(width, height);
+
+  ///////////////////////////////////////////////////////////////////
   
 
   
@@ -105,7 +131,7 @@ void setup() {
 
   wall_x = (float)width * 0.75;
   wall_y = (float)height * 0.5;
-  println(wall_x, wall_y);
+  println("wall:", wall_x, wall_y);
 }
 
 
@@ -120,6 +146,8 @@ head if confidence of tracking is above threshold
   kinect.update();
   // get Kinect data
   kinectDepth = kinect.depthImage();
+  // kinectDepth_resize = kinect.depthImage();
+  kinectDepth.resize(width, height);
   // draw depth image at coordinates (0,0)
   //image(kinectDepth,0,0); 
  
@@ -169,8 +197,23 @@ head if confidence of tracking is above threshold
  
   
 //  background(0);
+
+//////////// DRAW BACKGOUND IMAGE //////////////
+if (showImage){
   image(background_img, 0, 0);
-    //image(kinect.depthImage(),0,0);
+}
+else if (showKinect){
+///////////// DRAW KINECT IMG //////////////
+  // // draw thickness of drawer
+  // strokeWeight(3);
+  // // smooth out drawing
+  // smooth();
+
+  image(kinectDepth, 0, 0);
+
+}
+
+///////////// END DRAW KINECT IMAGE //////////
   // println(wall_x, wall_y);
 
   fill(255, 0, 0);
@@ -379,8 +422,8 @@ class Ball {
         //DISSAPPEAR
         if (y + diameter/2 > height) {
           //start just bounce dont disappear
-          y = height - diameter/2;
-          vy *= friction; 
+          // y = height - diameter/2;
+          // vy *= friction; 
          
           //end just bounce dont disappear
           
@@ -429,3 +472,18 @@ class Ball {
     }
   }
 }
+
+
+void keyPressed() {
+  if (key == ESC ) {
+    exit();
+  } else if (key == 'k') {
+    showKinect = true;
+    showImage = false;
+  }
+  else if (key == 'i'){
+    showImage = true;
+    showKinect = false;
+  }
+}
+
