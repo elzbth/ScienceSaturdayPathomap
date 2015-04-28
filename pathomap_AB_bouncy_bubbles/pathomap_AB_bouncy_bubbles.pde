@@ -38,10 +38,10 @@ float confidence;
 PVector confidenceVector = new PVector();
 
 //scaling factor for x pos of kinect
-float scaling_factor_x;
+float scaling_factor_x = 1.5;
 
 //scaling factor for y pos of kinect
-float scaling_factor_y;
+float scaling_factor_y = 1.5;
 
 
 float kinect_width = 640;
@@ -59,8 +59,10 @@ void setup() {
 
   // size(displayWidth, displayHeight - 50);
 
-  scaling_factor_x = kinect_width / width;
-  scaling_factor_y = kinect_height / height;
+  // scaling_factor_x =  width / kinect_width;
+  // scaling_factor_y =  height / kinect_height;
+
+  println(scaling_factor_x, scaling_factor_y);
 
 
     ////////////////////initialize kinect ////////////////////////
@@ -147,7 +149,7 @@ head if confidence of tracking is above threshold
   // get Kinect data
   kinectDepth = kinect.depthImage();
   // kinectDepth_resize = kinect.depthImage();
-  kinectDepth.resize(width, height);
+  // kinectDepth.resize(width, height);
   // draw depth image at coordinates (0,0)
   //image(kinectDepth,0,0); 
  
@@ -178,16 +180,16 @@ head if confidence of tracking is above threshold
         kinect.convertRealWorldToProjective(leftHand,leftHand);
         kinect.convertRealWorldToProjective(rightHand,rightHand);
         // create a distance scalar related to the depth in z dimension
-        distanceScalarL = (525/leftHand.z);
-        distanceScalarR = (525/rightHand.z);
+        distanceScalarL = (525 / leftHand.z);
+        distanceScalarR = (525 / rightHand.z);
         // draw the circle at the position of the head with the head size scaled by the distance scalar
-        fill (0,255,0);
-        ellipse(leftHand.x,leftHand.y,50,50);
+        // fill (0,255,0);
+        // ellipse(leftHand.x * scaling_factor_x,leftHand.y * scaling_factor_y, 50, 50);
         
-        fill (0,255,0);
-        ellipse(rightHand.x,rightHand.y,50,50);
-        println("leftHand:",leftHand.x, "," , leftHand.y);
-        println("rightHand:", rightHand.x, "," , rightHand.y);
+        // fill (0,255,0);
+        // ellipse(rightHand.x * scaling_factor_x, rightHand.y * scaling_factor_y, 50, 50);
+        // println("leftHand:", leftHand.x, "," , leftHand.y);
+        // println("rightHand:", rightHand.x, "," , rightHand.y);
        
       } //if(confidence > confidenceLevel)
     } //if(kinect.isTrackingSkeleton(userID[i]))
@@ -196,7 +198,6 @@ head if confidence of tracking is above threshold
  
  
   
-//  background(0);
 
 //////////// DRAW BACKGOUND IMAGE //////////////
 if (showImage){
@@ -208,6 +209,9 @@ else if (showKinect){
   // strokeWeight(3);
   // // smooth out drawing
   // smooth();
+
+  background(0);
+
 
   image(kinectDepth, 0, 0);
 
@@ -343,13 +347,13 @@ class Ball {
     }
    
      else if(isleftHand==true){
-      x = (leftHand.x);
-      y = (leftHand.y);
+      x = (leftHand.x * scaling_factor_x);
+      y = (leftHand.y * scaling_factor_y);
      }
      
      else if(isrightHand==true){
-      x= (rightHand.x);
-      y = (rightHand.y);
+      x= (rightHand.x * scaling_factor_x);
+      y = (rightHand.y * scaling_factor_y);
      }
     
     else if(isMouse==false){
