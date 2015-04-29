@@ -105,14 +105,14 @@ void setup() {
   
   color mouseColor = color(0, 0, 0);
   
-  //make the first ball the mouse ball
-  balls[0] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
-  balls[0].setAsMouse();
+  //make the last ball the mouse ball
+  balls[numBalls - 1] = new Ball(mouseX, mouseY, 100, 0, balls, "mouse", mouseColor);
+  balls[numBalls -1].setAsMouse();
    //********* add balls for Kinect
-  balls[1] = new Ball(leftHand.x, leftHand.y, 100, 1, balls, "lefthand", mouseColor);
-  balls[1].setAsleftHand();
-   balls[2] = new Ball(rightHand.x, rightHand.y, 100, 2, balls, "righthand", mouseColor);
-  balls[2].setAsrightHand();
+  balls[numBalls - 2] = new Ball(leftHand.x, leftHand.y, 100, 1, balls, "lefthand", mouseColor);
+  balls[numBalls - 2].setAsleftHand();
+   balls[numBalls - 3] = new Ball(rightHand.x, rightHand.y, 100, 2, balls, "righthand", mouseColor);
+  balls[numBalls - 3].setAsrightHand();
   
   
   for (int i = 0; i < numBalls - 3; i++) {
@@ -129,7 +129,7 @@ void setup() {
     
     color c = color(r, g, b);
     
-    balls[i+3] = new Ball(random(width),  10, radius, i+1, balls, name, c);
+    balls[i] = new Ball(random(width),  10, radius, i+1, balls, name, c);
 //    println(i+1, name);
   }
   noStroke();
