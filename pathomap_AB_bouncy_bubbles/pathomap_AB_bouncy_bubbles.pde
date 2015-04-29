@@ -9,6 +9,11 @@ Ball[] balls;
 PImage background_img;
 PImage test_tube;
 
+//gamification variables
+int num_ignored_balls = 0;
+int time_to_wait; 
+
+
 float wall_x;
 float wall_y;
 
@@ -129,7 +134,7 @@ void setup() {
     
     color c = color(r, g, b);
     
-    balls[i] = new Ball(random(width),  10, radius, i+1, balls, name, c);
+    balls[i] = new Ball(random(width * 0.75),  10, radius, i+1, balls, name, c);
 //    println(i+1, name);
   }
   noStroke();
@@ -145,6 +150,8 @@ void setup() {
 
   
 void draw(){
+
+
   
   /*---------------------------------------------------------------
 Updates Kinect. Gets users tracking and draws skeleton and
@@ -205,8 +212,9 @@ head if confidence of tracking is above threshold
  
   
 
-//////////// DRAW BACKGOUND IMAGE //////////////
 if (showImage){
+  //////////// DRAW BACKGOUND IMAGE //////////////
+
   image(background_img, 0, 0);
 }
 else if (showKinect){
@@ -224,8 +232,16 @@ else if (showKinect){
 }
 image(test_tube, wall_x, wall_y);
 
-///////////// END DRAW KINECT IMAGE //////////
-  // println(wall_x, wall_y);
+//waiting in between games
+if (millis() < time_to_wait){
+    
+    println("waiting");
+    fill(255, 0, 0);
+    text("YOU WON", width/2, height/2);
+}
+
+//playing 
+else{
 
   fill(255, 0, 0);
   rect(wall_x, wall_y, 10, height - wall_y);
@@ -237,18 +253,29 @@ image(test_tube, wall_x, wall_y);
       ball.display();  
     }
   }
+
+
+  println(num_ignored_balls, numBalls);
+  if (num_ignored_balls == numBalls - 3){
+  // if (true){
+    time_to_wait = millis() + 5000;
+
+    for (Ball ball : balls) {
+      if (ball != null){
+        ball.set_x(random(0,width * 0.75));
+        ball.set_y(10);
+        ball.stop_ignoring();
+      }
+    num_ignored_balls = 0;
+    }
+  }
+}
 //  saveFrame("frames/frame#####.tga");
+
   
 }
 
- //Draw Circle on Head
- void circleHead(int userId){
-   // get 3D position of head
-  
-  
-  
-  //
-  }
+
   /*---------------------------------------------------------------
 When a new user is found, print new user detected along with
 userID and start pose detection.  Input is userID
@@ -275,214 +302,6 @@ void onVisibleUser(SimpleOpenNI curContext, int userId){
 } //void onVisibleUser(SimpleOpenNI curContext, int userId)
 
 
-
-
-class Ball {
-  
-  float x, y;
-  float diameter;
-  float vx = 0;
-  float vy = 0;
-  int id;
-  Ball[] others;
-  String name;
-  Boolean isMouse;
-  Boolean isleftHand;
-  Boolean isrightHand;
-  color c;
-  Boolean ignore;
- 
-  Ball(float xin, float yin, float din, int idin, Ball[] oin, String namein, color cin) {
-    x = xin;
-    y = yin;
-    diameter = din;
-    id = idin;
-    others = oin;
-    name = namein;
-    isMouse = false;
-    isleftHand = false;
-    isrightHand = false;
-    ignore = false;
-    c = cin;
-    
-  } 
-  void ignore(){
-  ignore = true;  
-  }
-  
-  void setAsMouse(){
-   isMouse = true; 
-  }
-    void setAsrightHand(){
-   isrightHand = true; 
-  }
-    void setAsleftHand(){
-   isleftHand = true; 
-  }
-  
-  
-  void collide() {
-//    println("colliding", id);
-    for (int i = id + 1; i < numBalls; i++) {
-//      print(i, " " );
-      float dx = others[i].x - x;
-      float dy = others[i].y - y;
-      float distance = sqrt(dx*dx + dy*dy);
-      float minDist = others[i].diameter/2 + diameter/2;
-      if (distance < minDist) { 
-        // THIS IS A COLLISION EVENT - SEND OSC SOUND NOW?
-        float angle = atan2(dy, dx);
-        float targetX = x + cos(angle) * minDist;
-        float targetY = y + sin(angle) * minDist;
-        float ax = (targetX - others[i].x) * spring;
-        float ay = (targetY - others[i].y) * spring;
-        vx -= ax;
-        vy -= ay;
-        others[i].vx += ax;
-        others[i].vy += ay;
-      }
-    }   
-  }
-  
-
-  
- 
-  void move() {
-     if(isMouse==true){
-      x = mouseX;
-      y = mouseY;
-    }
-   
-     else if(isleftHand==true){
-      x = (leftHand.x * scaling_factor_x);
-      y = (leftHand.y * scaling_factor_y);
-     }
-     
-     else if(isrightHand==true){
-      x= (rightHand.x * scaling_factor_x);
-      y = (rightHand.y * scaling_factor_y);
-     }
-    
-    else if(isMouse==false){
-      vy += gravity;
-      x += vx;
-      y += vy;
-
-      //interaction of the ball with the frame. 
-      // the frame is divided into three sections: 
-      // top (above the "wall" defining the border of the container)
-      // bottom left: to the left of the wall
-      // bottom right: to the right of the wall
-
-      //top
-      if ( y < wall_y){
-
-        //COLLISION EVENTS WITH FRAME: SEND OSC MESSAGE FOR SOUND? 
-        //bounce off right border
-        if (x + diameter/2 > width) {
-          x = width - diameter/2;
-          vx *= cheat_friction; 
-        }
-        //bounce off left border
-        else if (x - diameter/2 < 0) {
-          x = diameter/2;
-          vx *= friction;
-        }
-        //bounce off ceiling
-        else if (y - diameter/2 < 0) {
-          y = diameter/2;
-          vy *= friction;
-        }
-      }
-
-      //bottomleft
-
-      else if(y > wall_y && x < wall_x){
-
-        //bounce off left border
-        if (x - diameter/2 < 0) {
-          x = diameter/2;
-          vx *= friction;
-        }
-
-        //bounce off floor
-        if (y + diameter/2 > height) {
-          y = height - diameter/2;
-          vy *= friction; 
-        } 
-
-        //bounce off wall to the right
-        if (x + diameter/2 > wall_x) {
-          x = wall_x - diameter/2;
-          vx *= friction; 
-        }
-
-      } 
-
-      //bottom right
-
-      else if (y > wall_y && x > wall_x){
-
-        //bounce off right border
-        if (x + diameter/2 > width) {
-          x = width - diameter/2;
-          vx *= cheat_friction; 
-        }
-
-        //bounce off floor with no spring
-        //DISSAPPEAR
-        if (y + diameter/2 > height) {
-          //start just bounce dont disappear
-          // y = height - diameter/2;
-          // vy *= friction; 
-         
-          //end just bounce dont disappear
-          
-          //start disappear
-         if (!isMouse && !isleftHand && !isrightHand){
-             ignore = true;
-            
-          }
-          
-        }
-
-        //bounde off wall to the left
-        if (x - diameter/2 < wall_x) {
-          x = wall_x + diameter/2;
-          vx *= friction; 
-        }
-
-      }
-      else{
-        println("error location");
-      }
-    }
-
- 
-  }
-  
-  void display() {
-    if( !(isMouse || ignore)){
-      
-      float alpha = 0;
-      if( y > height / 4 && y < height/2){
-        alpha = map(y, height / 4, height/2, 0, 255);
-      }
-      if(y > height / 2 && y < (height / 4) * 3 ) {
-        alpha = map(y, height/2, (height / 4) * 3 , 255, 0); 
-      }
-
-//      alpha = map(y, 0, height, 255, 0);
-      
-      fill(c, 204);
-      ellipse(x, y, diameter, diameter);
-      textSize(24);
-      fill(c, alpha);
-      textAlign(CENTER, CENTER);
-      text(name, x, y);
-    }
-  }
-}
 
 
 void keyPressed() {
