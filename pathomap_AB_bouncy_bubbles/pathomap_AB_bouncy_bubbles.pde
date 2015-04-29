@@ -3,9 +3,11 @@ int numBalls;
 int maxUsers = 1;
 float spring = 0.02;
 float gravity = 0.03;
-float friction = -0.2;
+float cheat_friction = -0.2;
+float friction = -1;
 Ball[] balls;
 PImage background_img;
+PImage test_tube;
 
 float wall_x;
 float wall_y;
@@ -54,13 +56,13 @@ Boolean showImage = false;
 void setup() {
 
 
-   size(768, 600);
+   // size(768, 600);
   // size(640, 480);
 
-  // size(displayWidth, displayHeight - 50);
+  size(displayWidth, displayHeight - 50);
 
-  // scaling_factor_x =  width / kinect_width;
-  // scaling_factor_y =  height / kinect_height;
+  scaling_factor_x =  width / kinect_width;
+  scaling_factor_y =  height / kinect_height;
 
   println(scaling_factor_x, scaling_factor_y);
 
@@ -86,6 +88,10 @@ void setup() {
   String[] lines = loadStrings("DataTable2b-MetaPhLan-ABonly.genus.sum_all_samples.gt0.BactOnly.gt10.nicenames.txt");
   background_img = loadImage("AB_station_collage.jpg");
   background_img.resize(width, height);
+
+  test_tube = loadImage("testubeorange.png");
+  test_tube.resize(int(width * 0.25), int(height * 0.5));
+
 
   ///////////////////////////////////////////////////////////////////
   
@@ -123,7 +129,7 @@ void setup() {
     
     color c = color(r, g, b);
     
-    balls[i+3] = new Ball(random(width), height - 10, radius, i+1, balls, name, c);
+    balls[i+3] = new Ball(random(width),  10, radius, i+1, balls, name, c);
 //    println(i+1, name);
   }
   noStroke();
@@ -216,6 +222,7 @@ else if (showKinect){
   image(kinectDepth, 0, 0);
 
 }
+image(test_tube, wall_x, wall_y);
 
 ///////////// END DRAW KINECT IMAGE //////////
   // println(wall_x, wall_y);
@@ -374,7 +381,7 @@ class Ball {
         //bounce off right border
         if (x + diameter/2 > width) {
           x = width - diameter/2;
-          vx *= friction; 
+          vx *= cheat_friction; 
         }
         //bounce off left border
         else if (x - diameter/2 < 0) {
@@ -419,7 +426,7 @@ class Ball {
         //bounce off right border
         if (x + diameter/2 > width) {
           x = width - diameter/2;
-          vx *= friction; 
+          vx *= cheat_friction; 
         }
 
         //bounce off floor with no spring
