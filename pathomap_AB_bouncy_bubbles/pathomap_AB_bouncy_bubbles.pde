@@ -1,4 +1,25 @@
 import SimpleOpenNI.*;
+import java.awt.Frame;
+import java.awt.BorderLayout;
+import controlP5.*;
+import oscP5.*;
+import netP5.*;
+
+
+// GUI stuff
+
+private ControlP5 cp5;
+
+ControlFrame cf;
+
+
+//OSC stuff
+OscP5 oscP5;
+NetAddress myRemoteLocation;
+
+
+
+////ball-related variables
 int numBalls;
 int maxUsers = 1;
 float spring = 0.02;
@@ -6,18 +27,21 @@ float gravity = 0.03;
 float cheat_friction = -0.2;
 float friction = -1;
 Ball[] balls;
+
+////background images
 PImage background_img;
 PImage test_tube;
 
-//gamification variables
+////gamification variables
 int num_ignored_balls = 0;
 int time_to_wait; 
 
-
+////container edges for test tube
 float wall_x;
 float wall_y;
 
-// Begin Kinect Variables - create kinect object
+////kinect variables
+
 SimpleOpenNI  kinect;
 // image storage from kinect
 PImage kinectDepth;
@@ -34,8 +58,8 @@ PVector rightHand = new PVector(0,0,0);
 // turn headPosition into scalar form
 float distanceScalarL;
 float distanceScalarR;
-// diameter of head drawn in pixels
-float headSize = 200;
+// // diameter of head drawn in pixels
+// float headSize = 200;
  
 // threshold of level of confidence
 float confidenceLevel = 0.5;
@@ -44,7 +68,7 @@ float confidence;
 // vector of tracked head for confidence checking
 PVector confidenceVector = new PVector();
 
-//scaling factor for x pos of kinect
+//scaling factor for x pos of kinect -- to account for size difference between kinect image and sketch image
 float scaling_factor_x = 1.5;
 
 //scaling factor for y pos of kinect
@@ -56,6 +80,9 @@ float kinect_height = 480;
 
 Boolean showKinect = true;
 Boolean showImage = false;
+
+int back = 100;
+
 
 
 void setup() {
@@ -72,6 +99,35 @@ void setup() {
   println(scaling_factor_x, scaling_factor_y);
 
 
+  //////// set up GUI //////
+
+  // cp5 = new ControlP5(this);
+  cf = addControlFrame("extra", 200,200);
+
+  
+  
+  // create a toggle and change the default look to a (on/off) switch look
+  // cp5.addToggle("toggle")
+  //    .setPosition(40,250)
+  //    .setSize(50,20)
+  //    .setValue(true)
+  //    .setMode(ControlP5.SWITCH)
+  //    ;
+
+  ////// setup OSC connection
+    /* start oscP5, listening for incoming messages at port 12000 */
+  oscP5 = new OscP5(this,12000);
+  
+  /* myRemoteLocation is a NetAddress. a NetAddress takes 2 parameters,
+   * an ip address and a port number. myRemoteLocation is used as parameter in
+   * oscP5.send() when sending osc packets to another computer, device, 
+   * application. usage see below. for testing purposes the listening port
+   * and the port of the remote location address are the same, hence you will
+   * send messages back to this sketch.
+   */
+  myRemoteLocation = new NetAddress("127.0.0.1",12000);
+
+
     ////////////////////initialize kinect ////////////////////////
   // start a new kinect object
   kinect = new SimpleOpenNI(this);
@@ -81,7 +137,8 @@ void setup() {
   kinect.setMirror(true);
   // enable skeleton generation for all joints
   kinect.enableUser();
-  /////////////////////////////////////////////////////////////////
+
+  ///////////?? 
   // // draw thickness of drawer
   strokeWeight(3);
   // smooth out drawing
@@ -98,10 +155,9 @@ void setup() {
   test_tube.resize(int(width * 0.25), int(height * 0.5));
 
 
-  ///////////////////////////////////////////////////////////////////
   
 
-  
+  ///////////////// make balls ////////////////////////////////////
   
   //will have one extra ball for the mouse, and one for each hand
   numBalls = lines.length + 3;
@@ -153,10 +209,98 @@ void draw(){
 
 
   
+
+
+  getKinectData(); 
+  
+
+  println("showKinect", showKinect);
+ 
+ 
+
+
+if (! showKinect){
+  //////////// DRAW BACKGOUND IMAGE //////////////
+
+  image(background_img, 0, 0);
+}
+else if (showKinect){
+///////////// DRAW KINECT IMG /////////////
+
+  background(back);
+  image(kinectDepth, 0, 0);
+
+}
+image(test_tube, wall_x, wall_y);
+
+//waiting in between games
+if (millis() < time_to_wait){
+    
+    println("waiting");
+    fill(255, 0, 0);
+    text("YOU WON", width/2, height/2);
+}
+
+//if you just finished the game
+else if (num_ignored_balls == numBalls - 3){
+  // if (true){
+    time_to_wait = millis() + 5000;
+    reset_balls();
+}
+
+//if playing 
+else{
+
+  fill(255, 0, 0);
+  rect(wall_x, wall_y, 10, height - wall_y);
+  // ellipse(wall_x, wall_y, 20, 20);
+  for (Ball ball : balls) {
+    if (ball != null){
+      ball.collide();
+      ball.move();
+      ball.display();  
+    }
+  }
+
+
+}
+//  saveFrame("frames/frame#####.tga");
+
+  
+}
+
+//////////// GUI ///////////////
+
+// void toggle(boolean theFlag) {
+//   if(theFlag==true) {
+//     showKinect = true;
+//     showImage = false;
+//   } else {
+//     showKinect = false;
+//     showImage = true;
+//   }
+//   println("a toggle event.");
+// }
+
+
+
+
+void reset_balls(){
+  for (Ball ball : balls) {
+        if (ball != null){
+          ball.set_x(random(0,width * 0.75));
+          ball.set_y(10);
+          ball.stop_ignoring();
+        }
+      num_ignored_balls = 0;
+      }
+}
+
   /*---------------------------------------------------------------
 Updates Kinect. Gets users tracking and draws skeleton and
 head if confidence of tracking is above threshold
 ----------------------------------------------------------------*/
+void getKinectData(){
   // update the camera
   kinect.update();
   // get Kinect data
@@ -207,72 +351,6 @@ head if confidence of tracking is above threshold
       } //if(confidence > confidenceLevel)
     } //if(kinect.isTrackingSkeleton(userID[i]))
   } //for(int i=0;i<userID.length;i++)
-
- 
- 
-  
-
-if (showImage){
-  //////////// DRAW BACKGOUND IMAGE //////////////
-
-  image(background_img, 0, 0);
-}
-else if (showKinect){
-///////////// DRAW KINECT IMG //////////////
-  // // draw thickness of drawer
-  // strokeWeight(3);
-  // // smooth out drawing
-  // smooth();
-
-  background(0);
-
-
-  image(kinectDepth, 0, 0);
-
-}
-image(test_tube, wall_x, wall_y);
-
-//waiting in between games
-if (millis() < time_to_wait){
-    
-    println("waiting");
-    fill(255, 0, 0);
-    text("YOU WON", width/2, height/2);
-}
-
-//playing 
-else{
-
-  fill(255, 0, 0);
-  rect(wall_x, wall_y, 10, height - wall_y);
-  // ellipse(wall_x, wall_y, 20, 20);
-  for (Ball ball : balls) {
-    if (ball != null){
-      ball.collide();
-      ball.move();
-      ball.display();  
-    }
-  }
-
-
-  println(num_ignored_balls, numBalls);
-  if (num_ignored_balls == numBalls - 3){
-  // if (true){
-    time_to_wait = millis() + 5000;
-
-    for (Ball ball : balls) {
-      if (ball != null){
-        ball.set_x(random(0,width * 0.75));
-        ball.set_y(10);
-        ball.stop_ignoring();
-      }
-    num_ignored_balls = 0;
-    }
-  }
-}
-//  saveFrame("frames/frame#####.tga");
-
-  
 }
 
 
@@ -315,5 +393,33 @@ void keyPressed() {
     showImage = true;
     showKinect = false;
   }
+}
+
+void mousePressed() {
+  /* in the following different ways of creating osc messages are shown by example */
+  OscMessage myMessage = new OscMessage("/test");
+  
+  myMessage.add(123); /* add an int to the osc message */
+  myMessage.add(12.34); /* add a float to the osc message */
+  myMessage.add("some text"); /* add a string to the osc message */
+  myMessage.add(new byte[] {0x00, 0x01, 0x10, 0x20}); /* add a byte blob to the osc message */
+  myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
+
+  /* send the message */
+  oscP5.send(myMessage, myRemoteLocation); 
+}
+
+ControlFrame addControlFrame(String theName, int theWidth, int theHeight) {
+  Frame f = new Frame(theName);
+  ControlFrame p = new ControlFrame(this, theWidth, theHeight);
+  f.add(p);
+  p.init();
+  p.setup();
+  f.setTitle(theName);
+  f.setSize(p.w, p.h);
+  f.setLocation(100, 100);
+  f.setResizable(false);
+  f.setVisible(true);
+  return p;
 }
 
