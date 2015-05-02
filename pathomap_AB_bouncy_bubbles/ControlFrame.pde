@@ -14,9 +14,9 @@ public class ControlFrame extends PApplet {
     cp5.addSlider("abc").setRange(0, 255).setPosition(10,10);
     cp5.addSlider("back").plugTo(parent,"back").setRange(0, 255).setPosition(10,30);
     cp5.addSlider("showKinect").plugTo(parent,"showKinect").setRange(0, 1).setPosition(10,40);
-    cp5.addSlider("wall_x_frac").plugTo(parent,"wall_x_frac").setRange(0, 100).setPosition(10,50);
-    cp5.addSlider("wall_y_frac").plugTo(parent,"wall_y_frac").setRange(0, 100).setPosition(10,60);
-    cp5.addToggle("restart").plugTo(parent,"restart").setPosition(10,50);
+    cp5.addSlider("restart").plugTo(parent,"restart").setRange(0, 1).setPosition(10,50);
+//    cp5.addSlider("wall_y_frac").plugTo(parent,"wall_y_frac").setRange(0, 100).setPosition(10,60);
+//    cp5.addToggle("restart").plugTo(parent,"restart").setPosition(10,50);
 
 
       // create a toggle and change the default look to a (on/off) switch look

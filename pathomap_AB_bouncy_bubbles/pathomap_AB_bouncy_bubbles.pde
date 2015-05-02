@@ -89,7 +89,7 @@ float kinect_height = 480;
 int showKinect = 0;
 Boolean showImage = true;
 
-Boolean restart = false;
+int restart = 0;
 
 int back = 100;
 
@@ -261,17 +261,17 @@ if (millis() < time_to_wait){
 }
 
 //if you just finished the game
-else if (num_ignored_balls == numBalls - 3 || restart){
+else if (num_ignored_balls == numBalls - 3 || restart == 1){
 
   oscP5.send(win_message, myRemoteLocation); 
 
   // if (true){
     //only wait if this is not a hot restart
-    if (restart == false){
+    if (restart == 0){
       time_to_wait = millis() + 5000;
     }
     reset_balls();
-    restart = false;
+    restart = 0;
     println("restart:",  restart);
 }
 
@@ -412,22 +412,22 @@ void keyPressed() {
     showKinect = 0;
   }
 }
-
-void mousePressed() {
-  /* in the following different ways of creating osc messages are shown by example */
-  // OscMessage bounce_message = new OscMessage("/bounce");
-  
-  // bounce_message.add(0); /* add an int to the osc message */
-  // myMessage.add(12.34); /* add a float to the osc message */
-  // myMessage.add("some text"); /* add a string to the osc message */
-  // myMessage.add(new byte[] {0x00, 0x01, 0x10, 0x20}); /* add a byte blob to the osc message */
-  // myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
-
-  /* send the message */
-  // oscP5.send(bounce_message, myRemoteLocation); 
-
-  restart = true;
-}
+//
+//void mousePressed() {
+//  /* in the following different ways of creating osc messages are shown by example */
+//  // OscMessage bounce_message = new OscMessage("/bounce");
+//  
+//  // bounce_message.add(0); /* add an int to the osc message */
+//  // myMessage.add(12.34); /* add a float to the osc message */
+//  // myMessage.add("some text"); /* add a string to the osc message */
+//  // myMessage.add(new byte[] {0x00, 0x01, 0x10, 0x20}); /* add a byte blob to the osc message */
+//  // myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
+//
+//  /* send the message */
+//  // oscP5.send(bounce_message, myRemoteLocation); 
+//
+//  restart = 1;
+//}
 
 ControlFrame addControlFrame(String theName, int theWidth, int theHeight) {
   Frame f = new Frame(theName);
