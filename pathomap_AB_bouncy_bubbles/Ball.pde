@@ -66,6 +66,8 @@ class Ball {
       float minDist = others[i].diameter/2 + diameter/2;
       if (distance < minDist) { 
         // THIS IS A COLLISION EVENT - SEND OSC SOUND NOW?
+        oscP5.send(collide_message, myRemoteLocation); 
+
         float angle = atan2(dy, dx);
         float targetX = x + cos(angle) * minDist;
         float targetY = y + sin(angle) * minDist;
@@ -117,16 +119,37 @@ class Ball {
         if (x + diameter/2 > width) {
           x = width - diameter/2;
           vx *= cheat_friction; 
+          if (isleftHand || isrightHand){
+            oscP5.send(hand_message, myRemoteLocation);
+          }
+          else{
+            oscP5.send(bounce_message, myRemoteLocation); 
+          }
+
         }
         //bounce off left border
         else if (x - diameter/2 < 0) {
           x = diameter/2;
           vx *= friction;
+          if (isleftHand || isrightHand){
+            oscP5.send(hand_message, myRemoteLocation);
+          }
+          else{
+            oscP5.send(bounce_message, myRemoteLocation); 
+          }
+
         }
         //bounce off ceiling
         else if (y - diameter/2 < 0) {
           y = diameter/2;
           vy *= friction;
+          if (isleftHand || isrightHand){
+            oscP5.send(hand_message, myRemoteLocation);
+          }
+          else{
+            oscP5.send(bounce_message, myRemoteLocation); 
+          }
+
         }
       }
 
@@ -138,18 +161,24 @@ class Ball {
         if (x - diameter/2 < 0) {
           x = diameter/2;
           vx *= friction;
+          oscP5.send(bounce_message, myRemoteLocation); 
+
         }
 
         //bounce off floor
         if (y + diameter/2 > height) {
           y = height - diameter/2;
           vy *= friction; 
+          oscP5.send(bounce_message, myRemoteLocation); 
+
         } 
 
         //bounce off wall to the right
         if (x + diameter/2 > wall_x) {
           x = wall_x - diameter/2;
           vx *= friction; 
+          oscP5.send(bounce_message, myRemoteLocation); 
+
         }
 
       } 
@@ -162,6 +191,8 @@ class Ball {
         if (x + diameter/2 > width) {
           x = width - diameter/2;
           vx *= cheat_friction; 
+          oscP5.send(bounce_message, myRemoteLocation); 
+
         }
 
         //bounce off floor with no spring
@@ -178,6 +209,8 @@ class Ball {
              
              if (!ignore){
               num_ignored_balls += 1;
+              oscP5.send(disappear_message, myRemoteLocation); 
+
 
              }
 
@@ -192,6 +225,8 @@ class Ball {
         if (x - diameter/2 < wall_x) {
           x = wall_x + diameter/2;
           vx *= friction; 
+          oscP5.send(bounce_message, myRemoteLocation); 
+
         }
 
       }

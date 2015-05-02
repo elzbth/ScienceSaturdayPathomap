@@ -17,6 +17,13 @@ ControlFrame cf;
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 
+OscMessage bounce_message;
+OscMessage collide_message;
+OscMessage disappear_message;
+OscMessage win_message;
+OscMessage start_message;
+OscMessage hand_message;
+
 
 
 ////ball-related variables
@@ -78,8 +85,8 @@ float scaling_factor_y = 1.5;
 float kinect_width = 640;
 float kinect_height = 480;
 
-Boolean showKinect = true;
-Boolean showImage = false;
+int showKinect = 0;
+Boolean showImage = true;
 
 int back = 100;
 
@@ -104,16 +111,6 @@ void setup() {
   // cp5 = new ControlP5(this);
   cf = addControlFrame("extra", 200,200);
 
-  
-  
-  // create a toggle and change the default look to a (on/off) switch look
-  // cp5.addToggle("toggle")
-  //    .setPosition(40,250)
-  //    .setSize(50,20)
-  //    .setValue(true)
-  //    .setMode(ControlP5.SWITCH)
-  //    ;
-
   ////// setup OSC connection
     /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,12000);
@@ -126,6 +123,24 @@ void setup() {
    * send messages back to this sketch.
    */
   myRemoteLocation = new NetAddress("127.0.0.1",12000);
+
+  bounce_message = new OscMessage("/bounce");
+  bounce_message.add(0); /* add an int to the osc message */
+
+  collide_message = new OscMessage("/collide");
+  collide_message.add(0);
+
+  disappear_message = new OscMessage ("/disappear");
+  disappear_message.add(0);
+
+  win_message = new OscMessage("/win");
+  win_message.add(0);
+
+  start_message = new OscMessage("/start");
+  start_message.add(0);
+
+  hand_message = new OscMessage("/hand");
+  hand_message.add(0);
 
 
     ////////////////////initialize kinect ////////////////////////
@@ -214,17 +229,17 @@ void draw(){
   getKinectData(); 
   
 
-  println("showKinect", showKinect);
+  // println("showKinect", showKinect);
  
  
 
 
-if (! showKinect){
+if ( showKinect == 0){
   //////////// DRAW BACKGOUND IMAGE //////////////
 
   image(background_img, 0, 0);
 }
-else if (showKinect){
+else if (showKinect > 0){
 ///////////// DRAW KINECT IMG /////////////
 
   background(back);
@@ -243,6 +258,9 @@ if (millis() < time_to_wait){
 
 //if you just finished the game
 else if (num_ignored_balls == numBalls - 3){
+
+  oscP5.send(win_message, myRemoteLocation); 
+
   // if (true){
     time_to_wait = millis() + 5000;
     reset_balls();
@@ -269,23 +287,13 @@ else{
   
 }
 
-//////////// GUI ///////////////
-
-// void toggle(boolean theFlag) {
-//   if(theFlag==true) {
-//     showKinect = true;
-//     showImage = false;
-//   } else {
-//     showKinect = false;
-//     showImage = true;
-//   }
-//   println("a toggle event.");
-// }
 
 
 
 
 void reset_balls(){
+  oscP5.send(start_message, myRemoteLocation); 
+
   for (Ball ball : balls) {
         if (ball != null){
           ball.set_x(random(0,width * 0.75));
@@ -386,27 +394,27 @@ void keyPressed() {
   if (key == ESC ) {
     exit();
   } else if (key == 'k') {
-    showKinect = true;
-    showImage = false;
+    showKinect = 1;
+    // showImage = false;
   }
   else if (key == 'i'){
-    showImage = true;
-    showKinect = false;
+    // showImage = true;
+    showKinect = 0;
   }
 }
 
 void mousePressed() {
   /* in the following different ways of creating osc messages are shown by example */
-  OscMessage myMessage = new OscMessage("/test");
+  // OscMessage bounce_message = new OscMessage("/bounce");
   
-  myMessage.add(123); /* add an int to the osc message */
-  myMessage.add(12.34); /* add a float to the osc message */
-  myMessage.add("some text"); /* add a string to the osc message */
-  myMessage.add(new byte[] {0x00, 0x01, 0x10, 0x20}); /* add a byte blob to the osc message */
-  myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
+  // bounce_message.add(0); /* add an int to the osc message */
+  // myMessage.add(12.34); /* add a float to the osc message */
+  // myMessage.add("some text"); /* add a string to the osc message */
+  // myMessage.add(new byte[] {0x00, 0x01, 0x10, 0x20}); /* add a byte blob to the osc message */
+  // myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
 
   /* send the message */
-  oscP5.send(myMessage, myRemoteLocation); 
+  oscP5.send(bounce_message, myRemoteLocation); 
 }
 
 ControlFrame addControlFrame(String theName, int theWidth, int theHeight) {
@@ -414,7 +422,7 @@ ControlFrame addControlFrame(String theName, int theWidth, int theHeight) {
   ControlFrame p = new ControlFrame(this, theWidth, theHeight);
   f.add(p);
   p.init();
-  p.setup();
+  // p.setup();
   f.setTitle(theName);
   f.setSize(p.w, p.h);
   f.setLocation(100, 100);
