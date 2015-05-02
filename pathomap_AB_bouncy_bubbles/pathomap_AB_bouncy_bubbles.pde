@@ -38,6 +38,7 @@ Ball[] balls;
 ////background images
 PImage background_img;
 PImage test_tube;
+int curtain;
 
 ////gamification variables
 int num_ignored_balls = 0;
@@ -88,6 +89,8 @@ float kinect_height = 480;
 int showKinect = 0;
 Boolean showImage = true;
 
+Boolean restart = false;
+
 int back = 100;
 
 
@@ -95,10 +98,11 @@ int back = 100;
 void setup() {
 
 
-   // size(768, 600);
+   size(1600, 900, P3D);
   // size(640, 480);
 
-  size(displayWidth, displayHeight - 50);
+//  size(displayWidth, displayHeight - 50, P3D);
+
 
   scaling_factor_x =  width / kinect_width;
   scaling_factor_y =  height / kinect_height;
@@ -166,7 +170,7 @@ void setup() {
   background_img = loadImage("AB_station_collage.jpg");
   background_img.resize(width, height);
 
-  test_tube = loadImage("testubeorange.png");
+  test_tube = loadImage("testubeorange_small.png");
   test_tube.resize(int(width * 0.25), int(height * 0.5));
 
 
@@ -251,26 +255,32 @@ image(test_tube, wall_x, wall_y);
 //waiting in between games
 if (millis() < time_to_wait){
     
-    println("waiting");
+    // println("waiting");
     fill(255, 0, 0);
     text("YOU WON", width/2, height/2);
 }
 
 //if you just finished the game
-else if (num_ignored_balls == numBalls - 3){
+else if (num_ignored_balls == numBalls - 3 || restart){
 
   oscP5.send(win_message, myRemoteLocation); 
 
   // if (true){
-    time_to_wait = millis() + 5000;
+    //only wait if this is not a hot restart
+    if (restart == false){
+      time_to_wait = millis() + 5000;
+    }
     reset_balls();
+    restart = false;
+    println("restart:",  restart);
 }
 
 //if playing 
 else{
 
   fill(255, 0, 0);
-  rect(wall_x, wall_y, 10, height - wall_y);
+  //draw wall 
+//  rect(wall_x, wall_y, 10, height - wall_y);
   // ellipse(wall_x, wall_y, 20, 20);
   for (Ball ball : balls) {
     if (ball != null){
@@ -414,7 +424,9 @@ void mousePressed() {
   // myMessage.add(new int[] {1,2,3,4}); /* add an int array to the osc message */
 
   /* send the message */
-  oscP5.send(bounce_message, myRemoteLocation); 
+  // oscP5.send(bounce_message, myRemoteLocation); 
+
+  restart = true;
 }
 
 ControlFrame addControlFrame(String theName, int theWidth, int theHeight) {

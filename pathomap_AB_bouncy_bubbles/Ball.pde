@@ -63,11 +63,15 @@ class Ball {
       float dx = others[i].x - x;
       float dy = others[i].y - y;
       float distance = sqrt(dx*dx + dy*dy);
-      float minDist = others[i].diameter/2 + diameter/2;
+      float minDist = others[i].diameter + diameter;
       if (distance < minDist) { 
         // THIS IS A COLLISION EVENT - SEND OSC SOUND NOW?
-        oscP5.send(collide_message, myRemoteLocation); 
-
+        if (isrightHand == true || isleftHand == true){
+//           oscP5.send(hand_message, myRemoteLocation); 
+        }
+        else{
+//            oscP5.send(collide_message, myRemoteLocation); 
+        }
         float angle = atan2(dy, dx);
         float targetX = x + cos(angle) * minDist;
         float targetY = y + sin(angle) * minDist;
@@ -85,6 +89,9 @@ class Ball {
   
  
   void move() {
+
+    boolean bounce = false;
+
      if(isMouse==true){
       x = mouseX;
       y = mouseY;
@@ -119,36 +126,21 @@ class Ball {
         if (x + diameter/2 > width) {
           x = width - diameter/2;
           vx *= cheat_friction; 
-          if (isleftHand || isrightHand){
-            oscP5.send(hand_message, myRemoteLocation);
-          }
-          else{
-            oscP5.send(bounce_message, myRemoteLocation); 
-          }
+          bounce = true;
 
         }
         //bounce off left border
         else if (x - diameter/2 < 0) {
           x = diameter/2;
           vx *= friction;
-          if (isleftHand || isrightHand){
-            oscP5.send(hand_message, myRemoteLocation);
-          }
-          else{
-            oscP5.send(bounce_message, myRemoteLocation); 
-          }
+          bounce = true;
 
         }
         //bounce off ceiling
         else if (y - diameter/2 < 0) {
           y = diameter/2;
           vy *= friction;
-          if (isleftHand || isrightHand){
-            oscP5.send(hand_message, myRemoteLocation);
-          }
-          else{
-            oscP5.send(bounce_message, myRemoteLocation); 
-          }
+          bounce = true;
 
         }
       }
@@ -161,15 +153,14 @@ class Ball {
         if (x - diameter/2 < 0) {
           x = diameter/2;
           vx *= friction;
-          oscP5.send(bounce_message, myRemoteLocation); 
-
+          bounce = true;
         }
 
         //bounce off floor
         if (y + diameter/2 > height) {
           y = height - diameter/2;
           vy *= friction; 
-          oscP5.send(bounce_message, myRemoteLocation); 
+          bounce = true;
 
         } 
 
@@ -177,7 +168,7 @@ class Ball {
         if (x + diameter/2 > wall_x) {
           x = wall_x - diameter/2;
           vx *= friction; 
-          oscP5.send(bounce_message, myRemoteLocation); 
+          bounce = true;
 
         }
 
@@ -191,7 +182,7 @@ class Ball {
         if (x + diameter/2 > width) {
           x = width - diameter/2;
           vx *= cheat_friction; 
-          oscP5.send(bounce_message, myRemoteLocation); 
+          bounce = true;
 
         }
 
@@ -225,7 +216,7 @@ class Ball {
         if (x - diameter/2 < wall_x) {
           x = wall_x + diameter/2;
           vx *= friction; 
-          oscP5.send(bounce_message, myRemoteLocation); 
+          bounce = true;
 
         }
 
@@ -235,6 +226,9 @@ class Ball {
       }
     }
 
+  if (bounce && !ignore){
+    oscP5.send(bounce_message, myRemoteLocation);
+  }
  
   }
   
