@@ -63,6 +63,8 @@ color[] userColor = new color[]{ color(255,0,0), color(0,255,0), color(0,0,255),
 
 PVector leftHand = new PVector(0,0,0);
 PVector rightHand = new PVector(0,0,0);
+PVector leftHand_temp = new PVector(0,0,0);
+
 // turn headPosition into scalar form
 float distanceScalarL;
 float distanceScalarR;
@@ -117,7 +119,7 @@ void setup() {
 
   ////// setup OSC connection
     /* start oscP5, listening for incoming messages at port 12000 */
-  oscP5 = new OscP5(this,12000);
+  oscP5 = new OscP5(this,12001);
   
   /* myRemoteLocation is a NetAddress. a NetAddress takes 2 parameters,
    * an ip address and a port number. myRemoteLocation is used as parameter in
@@ -332,6 +334,8 @@ void getKinectData(){
   userID = kinect.getUsers();
  
   // loop through each user to see if tracking
+  int maxUserDistance = 0;
+  
   for(int i=0;i<userID.length;i++)
   {
     // if Kinect is tracking certain user then get joint vectors
@@ -349,14 +353,23 @@ void getKinectData(){
         // fill the ellipse with the same color
         fill(userColor[(i)]);
         // detect hand coordinates
-        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_LEFT_HAND,leftHand);
-        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
+        //hack: set dstance filter to not display users that are firther than a certain threshold
+        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_LEFT_HAND,leftHand_temp);
+        distanceScalarL = (525 / leftHand_temp.z);
+        if (distanceScalarL > 0.17){
+          println("yo!!");
+          leftHand = new PVector(leftHand_temp.x, leftHand_temp.y, leftHand_temp.z);
+          kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
+
+        }
+//        kinect.getJointPositionSkeleton(userID[i], SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
         // convert real world point to projective space
         kinect.convertRealWorldToProjective(leftHand,leftHand);
         kinect.convertRealWorldToProjective(rightHand,rightHand);
         // create a distance scalar related to the depth in z dimension
         distanceScalarL = (525 / leftHand.z);
         distanceScalarR = (525 / rightHand.z);
+        println(distanceScalarR);
         // draw the circle at the position of the head with the head size scaled by the distance scalar
         // fill (0,255,0);
         // ellipse(leftHand.x * scaling_factor_x,leftHand.y * scaling_factor_y, 50, 50);
